@@ -6,6 +6,7 @@
 4) The units for pO2 are converted to kilopascals (kPa), the SI Units for pressure.
 
 **References:**
+
 García HE, Gordon LI (1992) Oxygen solubility in seawater: Better fitting equations. Limnology and Oceanography, 37, 1307–1312.
 
 Enns T, Scholander PF, Bradstreet ED (1965) Effect of hydrostatic pressure on gases dissolved in water. The Journal of Physical Chemistry, 69, 389–391.
