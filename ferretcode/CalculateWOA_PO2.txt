@@ -1,0 +1,53 @@
+SET DATA "data/dissolved_oxygen_annual_1deg.nc", "data/temperature_annual_1deg.nc", "data/salinity_annual_1deg.nc"
+
+!o2 units are ml l^-1 
+
+Let temp = t_an[d=2]  !°C
+Let salt = s_an[d=3] !psu
+
+Let a_0=2.00907
+Let a_1= 3.22014
+Let a_2= 4.05010
+Let a_3= 4.94457
+Let a_4= -2.56847e-01
+Let a_5= 3.88767
+Let b_0= -6.24523e-03
+Let b_1= -7.37614e-03
+Let b_2= -1.03410e-02 
+Let b_3= -8.17083e-03
+Let c_0= -4.88682e-07
+
+
+Let tt = 298.15 - temp
+Let tk = 273.15 + temp
+Let ts = ln(tt / tk)
+Let ts2 = ts  * ts
+Let ts3 = ts2 * ts
+Let ts4 = ts3 * ts
+Let ts5 = ts4 * ts
+
+Let o2_saturation = exp( a_0 + a_1*ts + a_2*ts2 + a_3*ts3 + a_4*ts4 + a_5*ts5 + (b_0 + b_1*ts + b_2*ts2 + b_3*ts3 + c_0*salt)*salt)
+
+!Correct for Pressure at Depth
+Let V = 32e-6 !partial molar volume of O2 (m3/mol)
+Let R = 8.31 !Gas constant [J/mol/K]
+Let db2Pa = 1e4 !convert pressure: decibar to Pascal
+Let atm2Pa=1.01325e5 !convert pressure: atm to Pascal
+
+!calculate pressure in dB from depth in m
+Let zdepth = z[g=t_an[d=2]]
+let zgrid = t_an[d=2]*0+zdepth
+Let ztop = zgrid * (1.0076 + zgrid * (2.3487e-06 - zgrid * 1.2887e-11)) 
+Let dp = ztop*db2Pa
+Let pCor = exp((V*dp)/(R*(t_an[d=2]+273.15)))
+
+Let o2_alpha = (o2_saturation / 0.21)  !0.21 is atm composition of O2
+Let kh = o2_alpha*pCor
+Let po2 = (o_an[d=1]/kh)*101.32501   !convert po2 from atm to kPa  
+
+define att po2.long_name = "Oxygen Pressure"
+define att po2.units = "kPa"
+
+Set memory/size=200
+SAVE/CLOBBER/FILE="data/WOA_po2_monthly_1deg.nc"/LLIMITS=1:12/L=1 po2
+repeat/L=2:12 (SAVE/APPEND/FILE="data/WOA_po2_monthly_1deg.nc"/L=`l` po2)
